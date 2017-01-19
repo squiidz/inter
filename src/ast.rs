@@ -26,7 +26,32 @@ impl Node for Program {
     }
 
     fn string(&self) -> String {
-        let mut out: String = "".to_owned();
+        let mut out = String::new();
+        for s in self.statements.iter() {
+            out.push_str(&s.string());
+        }
         return out
     }
+}
+
+struct Identifier {
+    token: Token,
+    value: String,
+}
+
+impl Node for Identifier {
+    fn token_literal(&self) -> String { self.token.literal.to_owned() }
+    fn string(&self) -> String {
+        self.value.to_owned()
+    }
+}
+
+impl Expression for Identifier {
+    fn expression_node(&self) {}
+}
+
+struct LetStatement<'a> {
+    token: Token,
+    name: &'a Identifier,
+    value: Expression,
 }
