@@ -1,6 +1,8 @@
+//use std::cmp::Eq;
 use std::collections::HashMap;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+#[allow(non_camel_case_types)]
 pub enum TokenType {
     ILLEGAL,
     EOF,
@@ -38,7 +40,7 @@ pub enum TokenType {
 }
 
 lazy_static! {
-    static ref keywords: HashMap<&'static str, TokenType> = {
+    static ref KEYWORDS: HashMap<&'static str, TokenType> = {
         let mut hm = HashMap::new();
         hm.insert("fn", TokenType::FUNCTION);
         hm.insert("let", TokenType::LET);
@@ -51,7 +53,7 @@ lazy_static! {
     };
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     pub token: TokenType,
     pub literal: String,
@@ -66,9 +68,11 @@ impl Token {
     }
 
     pub fn lookup_ident(ident: &str) -> TokenType {
-        match keywords.get(ident) {
-            Some(&t) => { t.clone() },
+        match KEYWORDS.get(ident) {
+            Some(t) => { t.clone() },
             None => { TokenType::IDENT },
         }
     }
 }
+
+

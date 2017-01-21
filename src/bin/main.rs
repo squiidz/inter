@@ -3,7 +3,8 @@ extern crate inter;
 use inter::lexer::Lexer;
 
 fn main() {
-    let lex = Lexer::new("some text to lex");
-    println!("{:?}", lex);
+    let mut lex = Lexer::new("let a = 5 + 3;");
+    lex.next_token();
+    println!("{}", lex);
 
 }

@@ -1,6 +1,7 @@
 use token::{Token, TokenType};
+use std::fmt::{self, Display, Formatter};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Lexer {
     input: String,
     position: usize,
@@ -9,7 +10,7 @@ pub struct Lexer {
 }
 
 impl Lexer {
-       pub fn new(input: &str) -> Lexer {
+    pub fn new(input: &str) -> Lexer {
         let mut lex = Lexer{
             input: input.to_owned(),
             position: 0,
@@ -20,18 +21,7 @@ impl Lexer {
         lex
     }
 
-    fn read_char(&mut self) {
-        if self.read_position >= self.input.len() {
-            self.ch = '0';
-        } else {
-            self.ch = self.input.chars().nth(self.read_position).unwrap();
-        }
-
-        self.position = self.read_position;
-        self.read_position += 1;
-    }
-
-    fn next_token(&mut self) -> Token {
+    pub fn next_token(&mut self) -> Token {
         let tok: Token;
         self.skip_whitespace();
 
@@ -95,6 +85,17 @@ impl Lexer {
        tok
     }
 
+    fn read_char(&mut self) {
+        if self.read_position >= self.input.len() {
+            self.ch = '0';
+        } else {
+            self.ch = self.input.chars().nth(self.read_position).unwrap();
+        }
+
+        self.position = self.read_position;
+        self.read_position += 1;
+    }
+
     fn read_identifier(&mut self) -> String {
         let position = self.position;
         while self.ch.is_alphabetic() {
@@ -136,3 +137,8 @@ impl Lexer {
     }
 }
 
+impl Display for Lexer {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "{}", self.input)
+    }
+}
