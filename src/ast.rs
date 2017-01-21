@@ -16,7 +16,7 @@ pub trait Expression: Node {
 
 #[allow(dead_code)]
 pub struct Program {
-    statements: Vec<Box<Statement>>,
+    pub statements: Vec<Box<Statement>>,
 }
 
 impl Node for Program {

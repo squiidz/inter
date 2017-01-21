@@ -1,4 +1,4 @@
-//use std::cmp::Eq;
+use std::fmt::{self, Formatter, Display};
 use std::collections::HashMap;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
@@ -39,6 +39,12 @@ pub enum TokenType {
     RETURN,
 }
 
+impl Display for TokenType {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "{}", self)
+    }
+}
+
 lazy_static! {
     static ref KEYWORDS: HashMap<&'static str, TokenType> = {
         let mut hm = HashMap::new();
@@ -75,4 +81,8 @@ impl Token {
     }
 }
 
-
+impl Display for Token {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "Type => {:?}, Literal => {}", self.token, self.literal)
+    }
+}

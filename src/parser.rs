@@ -1,10 +1,11 @@
 use std::collections::HashMap;
+use std::fmt::{self, Formatter, Display};
 
 use lexer::Lexer;
 use token::{Token, TokenType};
 use ast;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, PartialOrd)]
 #[allow(non_camel_case_types)]
 enum PrecedenceType {
     LOWEST,
@@ -36,8 +37,8 @@ lazy_static! {
 type prefixParseFn = fn() -> ast::Expression;
 type infixParseFn = fn(ast::Expression) -> ast::Expression;
 
-struct Parser {
-    lex: Box<Lexer>,
+pub struct Parser {
+    lex: Lexer,
     cur_token: Token,
     peek_token: Token,
     prefix_parse_fns: HashMap<TokenType, prefixParseFn>,
@@ -46,9 +47,9 @@ struct Parser {
 }
 
 impl Parser {
-    fn new(l: &mut Lexer) -> Parser {
+    pub fn new(l: Lexer) -> Parser {
         let mut parser = Parser{
-            lex: Box::new(l.clone()),
+            lex: l,
             cur_token: Token{token: TokenType::EOF, literal: String::new()},
             peek_token: Token{token: TokenType::EOF, literal: String::new()},
             prefix_parse_fns: HashMap::new(),
@@ -56,8 +57,8 @@ impl Parser {
             errors: Vec::new(),
         };
 
-        parser.init_prefix();
-        parser.init_infix();
+        //parser.init_prefix();
+        //parser.init_infix();
         parser
     }
 
@@ -92,12 +93,89 @@ impl Parser {
         self.infix_parse_fns.insert(tt, func);
     }
 
-    fn next_token(&mut self) {
-        self.cur_token = self.peek_token.clone();
+    pub fn next_token(&mut self) {
+        self.cur_token = self.peek_token.to_owned();
         self.peek_token = self.lex.next_token();
     }
 
-    fn parse_program(&self) -> ast::Program {
-        unimplemented!()
+    fn parse_program(&mut self) -> ast::Program {
+        let mut program = ast::Program{
+            statements: Vec::new()
+        };
+
+        while !self.current_token_is(TokenType::EOF) {
+            let stmt = self.parse_statement();
+            match stmt {
+                Some(s) => {
+                    program.statements.push(s)
+                },
+                None => { break },
+            }
+            self.next_token();
+        }
+        program
+    }
+
+    fn parse_statement(&self) -> Option<Box<ast::Statement>> {
+        match self.cur_token.token {
+            TokenType::LET => { unimplemented!() },
+            TokenType::RETURN => { unimplemented!() },
+            _ => { unimplemented!() }
+        }
+    }
+
+    fn parse_expression(&mut self, preced: PrecedenceType) -> Option<Box<&ast::Expression>> {
+        let prefix = match self.prefix_parse_fns.get(&self.cur_token.token) {
+            Some(f) => { f },
+            None => {
+                self.no_prefix_parse_fn_error(self.cur_token.token);
+                return None
+            }
+        };
+
+        let mut left_exp = Box::new(&prefix());
+
+        while !self.peek_token_is(TokenType::SEMICOLON) && preced < self.peek_precedence() {
+            let infix = match self.infix_parse_fns.get(&self.peek_token.token) {
+                Some(i) => { i },
+                None => { return Some(left_exp) }
+            };
+            self.next_token();
+            left_exp = Box::new(&infix(**left_exp));
+        }
+        Some(left_exp)
+    }
+
+    fn current_token_is(&self, tt: TokenType) -> bool {
+        self.cur_token.token == tt
+    }
+
+    fn peek_token_is(&self, tt: TokenType) -> bool {
+        self.peek_token.token == tt
+    }
+
+    fn expect_peek(&mut self, tt: TokenType) -> bool {
+        if self.peek_token_is(tt) {
+            self.next_token();
+            return true
+        }
+        self.peek_error(tt);
+        false
+    }
+
+    fn no_prefix_parse_fn_error(&mut self, tt: TokenType) {
+        let msg = format!("no prefix parse function for {} found", tt);
+        self.errors.push(msg.to_owned());
+    }
+
+    fn peek_error(&mut self, tt: TokenType) {
+        let msg = format!("expect next token to be {}, got {} instead", tt, self.peek_token.token);
+        self.errors.push(msg.to_owned());
+    }
+}
+
+impl Display for Parser {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "Current Token: {}\nPeek Token: {}", self.cur_token, self.peek_token)
     }
 }

@@ -3,7 +3,7 @@ use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug, Clone)]
 pub struct Lexer {
-    input: String,
+    pub input: String,
     position: usize,
     read_position: usize,
     ch: char,
